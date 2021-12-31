@@ -1,0 +1,52 @@
+version: '3.8'
+services:
+  apache2:
+    image: httpd:2.4
+    container_name: apache2
+    volumes:
+      - ./apache-config/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./apache-config/httpd-vhosts.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf
+      - ./apache-config/index.html:/usr/local/apache2/htdocs/index.html
+      - apache:/usr/local/apach2
+    ports:
+      - "80:80"
+    networks:
+      - gogs-network
+    depends_on:
+      - "gogs-server"
+
+  gogs-server:
+    image: gogs/gogs
+    container_name: gogs-server
+    volumes:
+      - ./gogs-config/app.ini:/data/gogs/conf/app.ini
+      - gogs-data:/data
+      - gogs-backup:/backup
+    networks:
+      - gogs-network
+    depends_on:
+      - "db"
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      - MYSQL_ROOT_PASSWORD=toor
+      - MYSQL_DATABASE=gogs
+      - MYSQL_USER=gogs
+      - MYSQL_PASSWORD=gogsuser
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - mysql-conf:/var/lib/mysql
+    networks:
+      - gogs-network
+
+networks:
+  gogs-network:
+
+volumes:
+  apache:
+  gogs-data:
+  gogs-backup:
+  mysql-data:
+  mysql-conf:
